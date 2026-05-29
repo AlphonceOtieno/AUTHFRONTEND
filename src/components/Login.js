@@ -1,12 +1,14 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import '../styles/AuthPage.css';
+import api from '../api';
 
 export default function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [errors, setErrors] = useState({});
   const [loading, setLoading] = useState(false);
+  const navigate = useNavigate();
 
   const validateForm = () => {
     const newErrors = {};
@@ -32,16 +34,21 @@ export default function Login() {
 
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        console.log('Login successful:', { email, password });
+      try {
+        const response = await api.post('/auth/login', { email, password });
+        console.log('Login successful:', response.data);
         alert('Login successful! Welcome back.');
+        // Optionally store the token
+        // localStorage.setItem('token', response.data.token);
         setEmail('');
         setPassword('');
         setLoading(false);
-        // Uncomment below to redirect to dashboard
         // navigate('/dashboard');
-      }, 1000);
+      } catch (error) {
+        console.error('Login failed:', error);
+        setErrors({ ...newErrors, form: error.response?.data?.message || 'Login failed' });
+        setLoading(false);
+      }
     } else {
       setErrors(newErrors);
     }

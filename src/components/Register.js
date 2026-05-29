@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import '../styles/AuthPage.css';
+import api from '../api';
 
 export default function Register() {
   const [formData, setFormData] = useState({
@@ -63,9 +64,14 @@ export default function Register() {
 
     if (Object.keys(newErrors).length === 0) {
       setLoading(true);
-      // Simulate API call
-      setTimeout(() => {
-        console.log('Registration successful:', formData);
+      try {
+        const response = await api.post('/auth/register', {
+          firstName: formData.firstName,
+          lastName: formData.lastName,
+          email: formData.email,
+          password: formData.password
+        });
+        console.log('Registration successful:', response.data);
         alert('Registration successful! You can now login.');
         setFormData({
           firstName: '',
@@ -76,7 +82,11 @@ export default function Register() {
         });
         setLoading(false);
         navigate('/login');
-      }, 1000);
+      } catch (error) {
+        console.error('Registration failed:', error);
+        setErrors({ ...newErrors, form: error.response?.data?.message || 'Registration failed' });
+        setLoading(false);
+      }
     } else {
       setErrors(newErrors);
     }
